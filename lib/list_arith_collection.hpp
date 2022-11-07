@@ -99,7 +99,7 @@ FUN bool select_source(ARGS, int step) { CODE
 //! @brief Export types used by the select_source function (none).
 FUN_EXPORT select_source_t = common::export_list<>;
 
-
+/*
 //! @brief Collects distributed data with a lossless information-speed-threshold strategy and a idempotent accumulate function.
 template <typename node_t, typename T, typename G, typename = common::if_signature<G, T(T,T)>>
 T lists_idem_collection(node_t& node, trace_t call_point, real_t const& distance, T const& value, real_t radius, real_t speed, T const& null, real_t epsilon, G&& accumulate) {
@@ -120,7 +120,7 @@ T lists_idem_collection(node_t& node, trace_t call_point, real_t const& distance
 }
 
 //! @brief Export list for list_idem_collection.
-template <typename T> using lists_idem_collection_t = common::export_list<T,real_t>;
+template <typename T> using lists_idem_collection_t = common::export_list<T,real_t>;*/
 
 
 template <typename node_t, typename T, typename G, typename = common::if_signature<G, T(T,T)>>
