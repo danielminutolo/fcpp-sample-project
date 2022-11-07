@@ -16,5 +16,6 @@ fcpp_target(./run/message_dispatch.cpp              ON)
 fcpp_target(./run/spreading_collection_batch.cpp    OFF)
 fcpp_target(./run/spreading_collection_gui.cpp      ON)
 fcpp_target(./run/spreading_collection_run.cpp      OFF)
+fcpp_target(./run/list_arith_collection.cpp      ON)
 
 fcpp_test(./test/tester.cpp)
