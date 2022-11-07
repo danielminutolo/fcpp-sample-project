@@ -134,27 +134,20 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
     field<real_t> maxDistNow = node.nbr_dist() + speed * node.nbr_lag();
     field<real_t> Vwst = mux(isfinite(distance) and maxDistNow < radius, (distance - Pu) / (Tu - t), (real_t)(-INF));
     field<real_t> nbrThreshold = nbr(node, 4, max_hood(node, 0, Vwst, 0));
-    //field<real_t> maxVwst = mux(Vwst == nbrThreshold, );
 
-    //Selezionare il vicino che massimizza Vwst  == nbrThreshold
     //nbr(node,0,nbrThreshold)
     return nbr(node, 3, value, [&](field<T> x){
         //device_t parent = get<1>(min_hood( node, 0, make_tuple(mux(Vwst == nbrThreshold,(nbrdist, nbr_uid(node, 0)),((-INF) ,-nbr_uid(node, 0))))));
         //device_t parent = get<1>(max_hood(node,0,make_tuple(nbr(node, 1,Vwst),nbr_uid(node, 0))));
-        //device_t parent = get<1>(max_hood(node, 0, nbr(node,0,make_tuple(nbr(node, 1, Vwst), nbr_uid(node, 0)))));
+        device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(nbr(node, 7, Vwst), nbr_uid(node, 0)))));
         
-        device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(Vwst,node.uid))));
+        //device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(Vwst,node.uid))));
         
         //device_t parent = get<1>(min_hood( node, 0, mux(nbr(node, 4, max_hood(node, 0, Vwst, 0))==Vwst, make_tuple(nbrdist ,nbr_uid(node, 0)),make_tuple((-INF) ,-nbr_uid(node, 0)))));
         return fold_hood(node, 0, accumulate, mux(nbr(node, 6, parent) == node.uid, x, null), value);
     });
 
 
-    //Tra tutti i vicini trova il dispositivo (m) con Vwst massimo (=nbrTreshold)
-    /*return nbr(node, 3, value, [&](field<T> old){
-        field<T> nv = mux(isfinite(distance) and nbrdist >= distance + node.nbr_lag() * nbrThreshold, old, null); 
-        return fold_hood(node, 0, accumulate, nv, value);
-    });*/
 }
 
 
