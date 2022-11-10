@@ -37,7 +37,7 @@ constexpr size_t discrete_sqrt(size_t n) {
 //! @brief The final simulation time.
 constexpr size_t end_time = 300;
 //! @brief Number of devices.
-constexpr size_t devices = 1000;
+constexpr size_t devices = 10;
 //! @brief Communication radius.
 constexpr size_t comm = 100;
 //! @brief Dimensionality of the space.
@@ -76,6 +76,8 @@ namespace tags {
     struct node_size {};
     //! @brief Shape of the current node.
     struct node_shape {};
+
+    struct node_color {};
 
     struct sum_tot{};
 }
@@ -136,15 +138,17 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
     field<real_t> nbrThreshold = nbr(node, 4, max_hood(node, 0, Vwst, 0));
 
     //nbr(node,0,nbrThreshold)
-    return nbr(node, 3, value, [&](field<T> x){
+    return nbr(node, 3, (T)null, [&](field<T> x){
+        field<real_t> Vwst = mux(isfinite(distance) and maxDistNow < radius, (distance - Pu) / (Tu - t), (real_t)(-INF));
+        field<real_t> nbrThreshold = nbr(node, 4, max_hood(node, 0, Vwst, 0));
         //device_t parent = get<1>(min_hood( node, 0, make_tuple(mux(Vwst == nbrThreshold,(nbrdist, nbr_uid(node, 0)),((-INF) ,-nbr_uid(node, 0))))));
         //device_t parent = get<1>(max_hood(node,0,make_tuple(nbr(node, 1,Vwst),nbr_uid(node, 0))));
-        //device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(nbr(node, 7, Vwst), nbr_uid(node, 0)))));
+        device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(nbr(node, 7, Vwst), nbr_uid(node, 0)))));
         
-        device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(Vwst,node.uid))));
+        //device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(Vwst,node.uid))));
         
         //device_t parent = get<1>(min_hood( node, 0, mux(nbr(node, 4, max_hood(node, 0, Vwst, 0))==Vwst, make_tuple(nbrdist ,nbr_uid(node, 0)),make_tuple((-INF) ,-nbr_uid(node, 0)))));
-        return fold_hood(node, 0, accumulate, mux(nbr(node, 6, parent) == node.uid, x, null), value);
+        return fold_hood(node, 0, accumulate, mux(nbr(node, 6, parent) == node.uid, x, (T)null), value);
     });
 
 
@@ -161,7 +165,8 @@ FUN void prova(ARGS, bool is_source, device_t source_id, double dist) { CODE
         return x+y;
     };
 
-    double idec = list_arith_collection(CALL,dist,1.0,2.0,1.0,0.0,1.0,adder);
+    double idec = list_arith_collection(CALL,dist,1.0,2.0,0.0,0.0,1.0,adder);
+    //double idec = sp_collection(CALL, dist, 1.0, 0.0, adder);
     node.storage(tags::sum_tot{})           = idec;
 }
 
@@ -170,9 +175,9 @@ FUN_EXPORT prova_t = common::export_list<list_arith_collection_t<double>>;
 //! @brief Main function.
 MAIN() {
     // random walk into a given rectangle with given speed
-    rectangle_walk(CALL, make_vec(0,0,0), make_vec(side,side,height), node.storage(tags::speed{}), 1);
+    rectangle_walk(CALL, make_vec(0,0,0), make_vec(side,side,height), 0, 1);
     // selects a different source every 50 simulated seconds
-    device_t source_id = node.current_time() < 10 ? 0 : 1;
+    device_t source_id = node.current_time() <= 0 ? 0 : 1;
     //bool is_source = select_source(CALL, 50);
     bool is_source = node.uid == source_id;
     // calculate distances from the source
@@ -187,9 +192,10 @@ MAIN() {
     });
     // broadcast the diameter computed in the source to the whole network
     double diam = broadcast(CALL, dist, sdiam);*/
-
-    node.storage(tags::node_size{})         = is_source ? 20 : 10;
+    node.storage(tags::node_color{})        = is_source ? color(GREEN) : color(RED);
+    node.storage(tags::node_size{})         = is_source ? 6 : 3;
     node.storage(tags::node_shape{})        = is_source ? shape::star : shape::sphere;
+    
 
     
    /* bool is_source = node.uid == source_id;
@@ -243,6 +249,7 @@ using rectangle_d = distribution::rect_n<1, 0, 0, 0, side, side, height>;
 using speed_d = distribution::constant_i<double, speed>;
 //! @brief The contents of the node storage as tags and associated types.
 using store_t = tuple_store<
+    node_color,         color,
     speed,              double,
     true_distance,      double,
     calc_distance,      double,
@@ -253,7 +260,7 @@ using store_t = tuple_store<
     diameter_c,         color,
     node_shape,         shape,
     node_size,          double,
-    sum_tot,             double
+    sum_tot,            double   
 >;
 //! @brief The tags and corresponding aggregators to be logged.
 using aggregator_t = aggregators<
@@ -297,7 +304,7 @@ DECLARE_OPTIONS(list,
     connector<connect::fixed<comm, 1, dim>>, // connection allowed within a fixed comm range
     shape_tag<node_shape>, // the shape of a node is read from this tag in the store
     size_tag<node_size>,   // the size of a node is read from this tag in the store
-    color_tag<distance_c, source_diameter_c, diameter_c> // colors of a node are read from these
+    color_tag<node_color,distance_c, source_diameter_c, diameter_c> // colors of a node are read from these
 );
 
 
