@@ -132,23 +132,26 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
     field<real_t> nbrdist = nbr(node, 0, distance);
     real_t t = node.current_time();
     field<real_t> Tu = nbr(node, 1, node.next_time() + epsilon);
-    field<real_t> Pu = nbr(node, 2, distance + speed * (node.next_time() - t));
+    field<real_t> Pu = nbr(node, 3, distance + speed * (node.next_time() - t));
     field<real_t> maxDistNow = node.nbr_dist() + speed * node.nbr_lag();
     field<real_t> Vwst = mux(isfinite(distance) and maxDistNow < radius, (distance - Pu) / (Tu - t), (real_t)(-INF));
     field<real_t> nbrThreshold = nbr(node, 4, max_hood(node, 0, Vwst, 0));
 
     //nbr(node,0,nbrThreshold)
-    return nbr(node, 3, (T)null, [&](field<T> x){
-        field<real_t> Vwst = mux(isfinite(distance) and maxDistNow < radius, (distance - Pu) / (Tu - t), (real_t)(-INF));
-        field<real_t> nbrThreshold = nbr(node, 4, max_hood(node, 0, Vwst, 0));
+    return nbr(node, 0, (T)null, [&](field<T> x){
+
         //device_t parent = get<1>(min_hood( node, 0, make_tuple(mux(Vwst == nbrThreshold,(nbrdist, nbr_uid(node, 0)),((-INF) ,-nbr_uid(node, 0))))));
         //device_t parent = get<1>(max_hood(node,0,make_tuple(nbr(node, 1,Vwst),nbr_uid(node, 0))));
-        device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(nbr(node, 7, Vwst), nbr_uid(node, 0)))));
+        //device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(nbr(node, 7, Vwst), nbr_uid(node, 0)))));
+        //device_t parent = get<1>(nbr(node, 4, max_hood(node, 0, make_tuple(Vwst,node.uid), 0)));
         
-        //device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(Vwst,node.uid))));
+        device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(Vwst,node.uid))));
+
+        
         
         //device_t parent = get<1>(min_hood( node, 0, mux(nbr(node, 4, max_hood(node, 0, Vwst, 0))==Vwst, make_tuple(nbrdist ,nbr_uid(node, 0)),make_tuple((-INF) ,-nbr_uid(node, 0)))));
         return fold_hood(node, 0, accumulate, mux(nbr(node, 6, parent) == node.uid, x, (T)null), value);
+        //return fold_hood(node, 0, accumulate, mux(nbr_uid(node, parent) == parent, x, (T)null), value);
     });
 
 
@@ -157,7 +160,7 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
 
 
 //! @brief Export list for list_idem_collection.
-template <typename T> using list_arith_collection_t = common::export_list<T,real_t,  fcpp::tuple<double, unsigned int>>;
+template <typename T> using list_arith_collection_t = common::export_list<T,real_t,unsigned int, fcpp::tuple<fcpp::field<double>, unsigned int>>;
 
 FUN void prova(ARGS, bool is_source, device_t source_id, double dist) { CODE
 
@@ -217,7 +220,7 @@ MAIN() {
     node.storage(tags::diameter_c{})        = color::hsva(diam *hue_scale, 1, 1);*/
 }
 //! @brief Export types used by the main function.
-FUN_EXPORT main_t = common::export_list<rectangle_walk_t<3>, select_source_t, abf_distance_t, mp_collection_t<double, double>, broadcast_t<double, double>,unsigned int,fcpp::field<double>,  fcpp::tuple<fcpp::field<double>, fcpp::field<unsigned int>>, fcpp::tuple<fcpp::field<double>, unsigned int> >;
+FUN_EXPORT main_t = common::export_list<rectangle_walk_t<3>, select_source_t, abf_distance_t, mp_collection_t<double, double>,list_arith_collection_t<double>, broadcast_t<double, double>>;
 
 
 } // namespace coordination
