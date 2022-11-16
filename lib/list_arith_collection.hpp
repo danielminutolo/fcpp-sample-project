@@ -135,10 +135,10 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
     field<real_t> nbrdist = nbr(node, 0, distance);
     real_t t = node.current_time();
     field<real_t> Tu = nbr(node, 1, node.next_time() + epsilon);
-    field<real_t> Pu = nbr(node, 3, distance + speed * (node.next_time() - t));
+    field<real_t> Pu = nbr(node, 2, distance + speed * (node.next_time() - t));
     field<real_t> maxDistNow = node.nbr_dist() + speed * node.nbr_lag();
     field<real_t> Vwst = mux(isfinite(distance) and maxDistNow < radius, (distance - Pu) / (Tu - t), (real_t)(-INF));
-    field<real_t> nbrThreshold = nbr(node, 4, max_hood(node, 0, Vwst, 0));
+    field<real_t> nbrThreshold = nbr(node, 3, max_hood(node, 0, Vwst, 0));
     std::cerr << "ROUND " << t << " NODE " << node.uid << std::endl;
     //nbr(node,0,nbrThreshold)
     return nbr(node, 0, (T)null, [&](field<T> x){
@@ -147,12 +147,13 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
         //device_t parent = get<1>(max_hood(node,0,make_tuple(nbr(node, 1,Vwst),nbr_uid(node, 0))));
 
         //VwstOp usato per verificare se i valori di Vwst sono lineari con quelli usati nel metodo per il calcolo del parent
-        field<real_t> VwstOp = get<0>(nbr(node,8,make_tuple(nbr(node, 9, Vwst), nbr_uid(node, 0))));
-        
-        device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(nbr(node, 7, Vwst), nbr_uid(node, 0)))));
+        //field<real_t> VwstOp = get<0>(nbr(node,8,make_tuple(nbr(node, 9, Vwst), nbr_uid(node, 0))));
+
+
+        //device_t parent = get<1>(max_hood(node, 0, nbr(node,4,make_tuple(nbr(node, 6, Vwst), nbr_uid(node, 0)))));
         //device_t parent = get<1>(nbr(node, 4, max_hood(node, 0, make_tuple(Vwst,node.uid), 0)));
         
-        //device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(nbrThreshold,node.uid))));
+        device_t parent = get<1>(max_hood(node, 0, nbr(node,4,make_tuple(Vwst,node.uid))));
 
         //bool tresholdEquals = get<0>(max_hood(node, 0, nbr(node,2,make_tuple(Vwst,node.uid)))) == nbrThreshold;
 
@@ -161,11 +162,11 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
         printer(Tu);
         printer(t);
         printer(distance);
-        printer(Pu);
+        printer(nbr_uid(node, parent));
 
-        printer(VwstOp);
+        printer(node.uid);
         printer(Vwst);
-        printer(nbrThreshold);
+        printer(parent);
         
         //printer(tresholdEquals);
 
@@ -173,8 +174,8 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
         
         
         //device_t parent = get<1>(min_hood( node, 0, mux(nbr(node, 4, max_hood(node, 0, Vwst, 0))==Vwst, make_tuple(nbrdist ,nbr_uid(node, 0)),make_tuple((-INF) ,-nbr_uid(node, 0)))));
-        return fold_hood(node, 0, accumulate, mux(nbr(node, 6, parent) == node.uid, x, (T)null), value);
-        //return fold_hood(node, 0, accumulate, mux(nbr_uid(node, parent) == parent, x, (T)null), value);
+        //return fold_hood(node, 0, accumulate, mux(nbr(node, 5, parent) == node.uid, x, (T)null), value);
+        return fold_hood(node, 0, accumulate, mux(nbr_uid(node, 0) == parent, x, (T)null), value);
     });
 
 
