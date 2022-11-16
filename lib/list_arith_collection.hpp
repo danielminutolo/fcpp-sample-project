@@ -145,7 +145,10 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
 
         //device_t parent = get<1>(min_hood( node, 0, make_tuple(mux(Vwst == nbrThreshold,(nbrdist, nbr_uid(node, 0)),((-INF) ,-nbr_uid(node, 0))))));
         //device_t parent = get<1>(max_hood(node,0,make_tuple(nbr(node, 1,Vwst),nbr_uid(node, 0))));
+
+        //VwstOp usato per verificare se i valori di Vwst sono lineari con quelli usati nel metodo per il calcolo del parent
         field<real_t> VwstOp = get<0>(nbr(node,8,make_tuple(nbr(node, 9, Vwst), nbr_uid(node, 0))));
+        
         device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(nbr(node, 7, Vwst), nbr_uid(node, 0)))));
         //device_t parent = get<1>(nbr(node, 4, max_hood(node, 0, make_tuple(Vwst,node.uid), 0)));
         
