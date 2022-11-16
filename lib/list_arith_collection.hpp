@@ -17,6 +17,9 @@
 
 #include "lib/fcpp.hpp"
 
+ #define printer(v) std::cerr << #v << " = " << v << std::endl
+
+
 
 /**
  * @brief Namespace containing all the objects in the FCPP library.
@@ -136,17 +139,34 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
     field<real_t> maxDistNow = node.nbr_dist() + speed * node.nbr_lag();
     field<real_t> Vwst = mux(isfinite(distance) and maxDistNow < radius, (distance - Pu) / (Tu - t), (real_t)(-INF));
     field<real_t> nbrThreshold = nbr(node, 4, max_hood(node, 0, Vwst, 0));
-
+    std::cerr << "ROUND " << t << " NODE " << node.uid << std::endl;
     //nbr(node,0,nbrThreshold)
     return nbr(node, 0, (T)null, [&](field<T> x){
 
         //device_t parent = get<1>(min_hood( node, 0, make_tuple(mux(Vwst == nbrThreshold,(nbrdist, nbr_uid(node, 0)),((-INF) ,-nbr_uid(node, 0))))));
         //device_t parent = get<1>(max_hood(node,0,make_tuple(nbr(node, 1,Vwst),nbr_uid(node, 0))));
-        //device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(nbr(node, 7, Vwst), nbr_uid(node, 0)))));
+        field<real_t> VwstOp = get<0>(nbr(node,8,make_tuple(nbr(node, 9, Vwst), nbr_uid(node, 0))));
+        device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(nbr(node, 7, Vwst), nbr_uid(node, 0)))));
         //device_t parent = get<1>(nbr(node, 4, max_hood(node, 0, make_tuple(Vwst,node.uid), 0)));
         
-        device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(Vwst,node.uid))));
+        //device_t parent = get<1>(max_hood(node, 0, nbr(node,5,make_tuple(nbrThreshold,node.uid))));
 
+        //bool tresholdEquals = get<0>(max_hood(node, 0, nbr(node,2,make_tuple(Vwst,node.uid)))) == nbrThreshold;
+
+        
+        printer(nbrdist);
+        printer(Tu);
+        printer(t);
+        printer(distance);
+        printer(Pu);
+
+        printer(VwstOp);
+        printer(Vwst);
+        printer(nbrThreshold);
+        
+        //printer(tresholdEquals);
+
+        //printer(res);
         
         
         //device_t parent = get<1>(min_hood( node, 0, mux(nbr(node, 4, max_hood(node, 0, Vwst, 0))==Vwst, make_tuple(nbrdist ,nbr_uid(node, 0)),make_tuple((-INF) ,-nbr_uid(node, 0)))));
@@ -160,15 +180,16 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
 
 
 //! @brief Export list for list_idem_collection.
-template <typename T> using list_arith_collection_t = common::export_list<T,real_t,unsigned int, fcpp::tuple<fcpp::field<double>, unsigned int>>;
+template <typename T> using list_arith_collection_t = common::export_list<T,real_t,unsigned int, fcpp::tuple<fcpp::field<double>, unsigned int>,fcpp::field<double>,fcpp::tuple<fcpp::field<double>, fcpp::field<unsigned int> >>;
 
 FUN void prova(ARGS, bool is_source, device_t source_id, double dist) { CODE
 
     auto adder = [](double x, double y) {
         return x+y;
     };
-
-    double idec = list_arith_collection(CALL,dist,1.0,2.0,0.0,0.0,1.0,adder);
+    
+    double idec = list_arith_collection(CALL,dist,1.0,100.0,0.0,0.0,1.0,adder);
+    std::cerr << "============================" << std::endl;
     //double idec = sp_collection(CALL, dist, 1.0, 0.0, adder);
     node.storage(tags::sum_tot{})           = idec;
 }
@@ -185,6 +206,9 @@ MAIN() {
     bool is_source = node.uid == source_id;
     // calculate distances from the source
     double dist = abf_distance(CALL, is_source);
+
+    
+    //return res;
     // collect the maximum finite distance (diameter) back towards the source
    /* double sdiam = mp_collection(CALL, dist, dist, 0.0, [](double x, double y){
         x = isfinite(x) ? x : 0;
