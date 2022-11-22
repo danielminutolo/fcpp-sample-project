@@ -40,7 +40,7 @@ constexpr size_t discrete_sqrt(size_t n) {
 //! @brief The final simulation time.
 constexpr size_t end_time = 300;
 //! @brief Number of devices.
-constexpr size_t devices = 10;
+constexpr size_t devices = 100;
 //! @brief Communication radius.
 constexpr size_t comm = 100;
 //! @brief Dimensionality of the space.
@@ -141,7 +141,7 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
     field<real_t> nbrThreshold = nbr(node, 3, max_hood(node, 0, Vwst, 0));
     std::cerr << "ROUND " << t << " NODE " << node.uid << std::endl;
     //nbr(node,0,nbrThreshold)
-    return nbr(node, 0, (T)null, [&](field<T> x){
+    return nbr(node, 0, value, [&](field<T> x){
 
         //device_t parent = get<1>(min_hood( node, 0, make_tuple(mux(Vwst == nbrThreshold,(nbrdist, nbr_uid(node, 0)),((-INF) ,-nbr_uid(node, 0))))));
         //device_t parent = get<1>(max_hood(node,0,make_tuple(nbr(node, 1,Vwst),nbr_uid(node, 0))));
@@ -167,6 +167,7 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
         printer(node.uid);
         printer(Vwst);
         printer(parent);
+        printer(x);
         
         //printer(tresholdEquals);
 
@@ -175,7 +176,7 @@ T list_arith_collection(node_t& node, trace_t call_point, real_t const& distance
         
         //device_t parent = get<1>(min_hood( node, 0, mux(nbr(node, 4, max_hood(node, 0, Vwst, 0))==Vwst, make_tuple(nbrdist ,nbr_uid(node, 0)),make_tuple((-INF) ,-nbr_uid(node, 0)))));
         //return fold_hood(node, 0, accumulate, mux(nbr(node, 5, parent) == node.uid, x, (T)null), value);
-        return fold_hood(node, 0, accumulate, mux(nbr_uid(node, 0) == parent, x, (T)null), value);
+        return fold_hood(node, 0, accumulate, mux(nbr_uid(node, 0) == parent, x, null), value);
     });
 
 
@@ -192,7 +193,7 @@ FUN void prova(ARGS, bool is_source, device_t source_id, double dist) { CODE
         return x+y;
     };
     
-    double idec = list_arith_collection(CALL,dist,1.0,100.0,0.0,0.0,1.0,adder);
+    double idec = list_arith_collection(CALL,dist,1.0,100.0,1.0,0.0,1.0,adder);
     std::cerr << "============================" << std::endl;
     //double idec = sp_collection(CALL, dist, 1.0, 0.0, adder);
     node.storage(tags::sum_tot{})           = idec;
@@ -203,9 +204,9 @@ FUN_EXPORT prova_t = common::export_list<list_arith_collection_t<double>>;
 //! @brief Main function.
 MAIN() {
     // random walk into a given rectangle with given speed
-    rectangle_walk(CALL, make_vec(0,0,0), make_vec(side,side,height), 0, 1);
+    rectangle_walk(CALL, make_vec(0,0,0), make_vec(side,side,height), node.storage(tags::speed{}), 1);
     // selects a different source every 50 simulated seconds
-    device_t source_id = node.current_time() <= 0 ? 0 : 1;
+    device_t source_id = 0;
     //bool is_source = select_source(CALL, 50);
     bool is_source = node.uid == source_id;
     // calculate distances from the source
@@ -224,7 +225,7 @@ MAIN() {
     // broadcast the diameter computed in the source to the whole network
     double diam = broadcast(CALL, dist, sdiam);*/
     node.storage(tags::node_color{})        = is_source ? color(GREEN) : color(RED);
-    node.storage(tags::node_size{})         = is_source ? 6 : 3;
+    node.storage(tags::node_size{})         = is_source ? 20 : 10;
     node.storage(tags::node_shape{})        = is_source ? shape::star : shape::sphere;
     
 
